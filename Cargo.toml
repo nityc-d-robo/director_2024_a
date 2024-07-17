@@ -1,0 +1,12 @@
+[package]
+name = "director_2024_a"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+safe_drive = "0.4"
+controllers = {git = "https://github.com/nityc-d-robo/controllers",rev = "4f519da158d809839714e0bd8a3137b433afbb71"}
+
+
+[package.metadata.ros]
+safe_drive_version = "0.3"
