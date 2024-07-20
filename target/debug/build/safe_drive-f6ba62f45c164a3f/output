@@ -35,6 +35,8 @@ cargo:rustc-link-lib=rcl_interfaces__rosidl_typesupport_c
 cargo:rustc-link-lib=rcl_interfaces__rosidl_generator_c
 cargo:rustc-link-lib=action_msgs__rosidl_typesupport_c
 cargo:rustc-link-lib=action_msgs__rosidl_generator_c
-cargo:rustc-link-search=/opt/ros/humble/lib
 cargo:rerun-if-env-changed=ROS_DISTRO
-cargo:rustc-cfg=feature="humble"
+cargo:warning='ROS_DISTRO is not set properly. Defaulting to jazzy.'
+cargo:rustc-link-lib=service_msgs__rosidl_typesupport_c
+cargo:rustc-link-lib=service_msgs__rosidl_generator_c
+cargo:rustc-cfg=feature="jazzy"

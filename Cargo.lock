@@ -32,7 +32,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 [[package]]
 name = "controllers"
 version = "0.1.0"
-source = "git+https://github.com/nityc-d-robo/controllers?rev=4f519da158d809839714e0bd8a3137b433afbb71#4f519da158d809839714e0bd8a3137b433afbb71"
+source = "git+https://github.com/nityc-d-robo/controllers?rev=d1a09c55cd9d0ca8c5efdcd647fa6ea0ae68306b#d1a09c55cd9d0ca8c5efdcd647fa6ea0ae68306b"
 dependencies = [
  "safe_drive",
 ]
