@@ -8,8 +8,8 @@ use safe_drive::{
     topic::{subscriber::Subscriber, subscriber::TakenMsg},
 };
 
-use std::rc::Rc;
-use std::sync::Mutex;
+
+use core::cell::RefCell;
 
 struct RoboCon {
     p_r_joy: Publisher<Joy>,
@@ -69,23 +69,21 @@ fn main() -> Result<(), DynError> {
         Joy::new().unwrap(),
     );
 
-    let robocons_joy0 = Rc::new(Mutex::new([p_r_joy1, p_r_joy2_1]));
-    let robocons_joy1 = Rc::new(Mutex::new([p_r_joy2_2_1, p_r_joy2_2_2]));
+    let mut robocons_joy0 =RefCell::new([p_r_joy1, p_r_joy2_1]);
+    let mut robocons_joy1 = RefCell::new([p_r_joy2_2_1, p_r_joy2_2_2]);
     let robocons_joy2 = p_r_joy2_3;
 
-    let robocons_clone0 = Rc::clone(&robocons_joy0);
     selector.add_subscriber(
         s_joy0,
         Box::new(move |msg| {
-            joy0(msg, &robocons_clone0);
+            joy0(msg, &mut robocons_joy0);
         }),
     );
 
-    let robocons_clone1 = Rc::clone(&robocons_joy1);
     selector.add_subscriber(
         s_joy1,
         Box::new(move |msg| {
-            joy1(msg, &robocons_clone1);
+            joy1(msg, &mut robocons_joy1);
         }),
     );
 
@@ -96,9 +94,9 @@ fn main() -> Result<(), DynError> {
     }
 }
 
-fn joy0(joy0_msg: TakenMsg<Joy>, _robocons: &Rc<Mutex<[RoboCon; 2]>>) {
-    let robocons = &mut _robocons.lock().unwrap();
+fn joy0(joy0_msg: TakenMsg<Joy>,  _robocons:&mut RefCell<[RoboCon; 2]>) {
     let joy0_c = p9n_interface::DualShock4Interface::new(&joy0_msg);
+    let robocons= _robocons.get_mut();
     if joy0_c.pressed_r1() {
         robocons.swap(0, 1);
     }
@@ -120,11 +118,10 @@ fn joy0(joy0_msg: TakenMsg<Joy>, _robocons: &Rc<Mutex<[RoboCon; 2]>>) {
     }
 }
 
-fn joy1(joy1_msg: TakenMsg<Joy>, _robocons: &Rc<Mutex<[RoboCon; 2]>>) {
-    let robocons = &mut _robocons.lock().unwrap();
+fn joy1(joy1_msg: TakenMsg<Joy>,  _robocons:&mut RefCell<[RoboCon; 2]>) {
 
     let joy0_c = p9n_interface::DualShock4Interface::new(&joy1_msg);
-
+        let robocons= _robocons.get_mut();
     if joy0_c.pressed_r1() {
         robocons.swap(0, 1);
     }
