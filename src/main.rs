@@ -4,10 +4,11 @@ use safe_drive::{
     error::DynError,
     logger::Logger,
     msg::common_interfaces::{sensor_msgs, sensor_msgs::msg::Joy},
+    pr_fatal, pr_info,
     topic::publisher::Publisher,
     topic::{subscriber::Subscriber, subscriber::TakenMsg},
 };
-
+use std::{rc::Rc, time::Duration};
 
 use core::cell::RefCell;
 
@@ -39,37 +40,37 @@ fn main() -> Result<(), DynError> {
     let s_joy2 = node.create_subscriber::<sensor_msgs::msg::Joy>("joy2", None)?;
 
     let p_r_joy1 = RoboCon::new(
-        node.create_publisher::<Joy>("joy1", None)?,
-        node.create_subscriber::<Joy>("joy1", None)?,
+        node.create_publisher::<Joy>("r_joy1", None)?,
+        node.create_subscriber::<Joy>("ijoy1", None)?,
         false,
         Joy::new().unwrap(),
     );
     let p_r_joy2_1 = RoboCon::new(
-        node.create_publisher::<Joy>("joy2_1", None)?,
-        node.create_subscriber::<Joy>("joy1", None)?,
+        node.create_publisher::<Joy>("r_joy2_1", None)?,
+        node.create_subscriber::<Joy>("ijoy1", None)?,
         false,
         Joy::new().unwrap(),
     );
     let p_r_joy2_2_1 = RoboCon::new(
-        node.create_publisher::<Joy>("joy2_2_1", None)?,
-        node.create_subscriber::<Joy>("joy1", None)?,
+        node.create_publisher::<Joy>("r_joy2_2_1", None)?,
+        node.create_subscriber::<Joy>("ijoy1", None)?,
         false,
         Joy::new().unwrap(),
     );
     let p_r_joy2_2_2 = RoboCon::new(
-        node.create_publisher::<Joy>("joy2_2_2", None)?,
-        node.create_subscriber::<Joy>("joy1", None)?,
+        node.create_publisher::<Joy>("r_joy2_2_2", None)?,
+        node.create_subscriber::<Joy>("ijoy1", None)?,
         false,
         Joy::new().unwrap(),
     );
     let p_r_joy2_3 = RoboCon::new(
-        node.create_publisher::<Joy>("joy2_3", None)?,
-        node.create_subscriber::<Joy>("joy1", None)?,
+        node.create_publisher::<Joy>("r_joy2_3", None)?,
+        node.create_subscriber::<Joy>("ijoy1", None)?,
         false,
         Joy::new().unwrap(),
     );
 
-    let mut robocons_joy0 =RefCell::new([p_r_joy1, p_r_joy2_1]);
+    let mut robocons_joy0 = RefCell::new([p_r_joy1, p_r_joy2_1]);
     let mut robocons_joy1 = RefCell::new([p_r_joy2_2_1, p_r_joy2_2_2]);
     let robocons_joy2 = p_r_joy2_3;
 
@@ -94,15 +95,24 @@ fn main() -> Result<(), DynError> {
     }
 }
 
-fn joy0(joy0_msg: TakenMsg<Joy>,  _robocons:&mut RefCell<[RoboCon; 2]>) {
-    let joy0_c = p9n_interface::DualShock4Interface::new(&joy0_msg);
-    let robocons= _robocons.get_mut();
+fn joy0(joy0_msg: TakenMsg<Joy>, _robocons: &mut RefCell<[RoboCon; 2]>) {
+    let binding = sensor_msgs::msg::Joy::new().unwrap();
+    let mut joy0_c = p9n_interface::DualShock4Interface::new(&binding);
+    joy0_c.set_joy_msg(&joy0_msg);
+
+    let robocons = _robocons.get_mut();
     if joy0_c.pressed_r1() {
         robocons.swap(0, 1);
+
+        let logger = Rc::new(Logger::new("director_2024_a"));
+        pr_info!(logger, "joy0 r1",);
     }
 
     if joy0_c.pressed_l1() {
-        robocons[0].img_mode = !robocons[0].img_mode
+        robocons[0].img_mode = !robocons[0].img_mode;
+
+        let logger = Rc::new(Logger::new("director_2024_a"));
+        pr_info!(logger, "joy0 l1",);
     }
 
     if robocons[0].img_mode {
@@ -118,16 +128,23 @@ fn joy0(joy0_msg: TakenMsg<Joy>,  _robocons:&mut RefCell<[RoboCon; 2]>) {
     }
 }
 
-fn joy1(joy1_msg: TakenMsg<Joy>,  _robocons:&mut RefCell<[RoboCon; 2]>) {
+fn joy1(joy1_msg: TakenMsg<Joy>, _robocons: &mut RefCell<[RoboCon; 2]>) {
+    let binding = sensor_msgs::msg::Joy::new().unwrap();
+    let mut joy1_c = p9n_interface::DualShock4Interface::new(&binding);
+    joy1_c.set_joy_msg(&joy1_msg);
 
-    let joy0_c = p9n_interface::DualShock4Interface::new(&joy1_msg);
-        let robocons= _robocons.get_mut();
-    if joy0_c.pressed_r1() {
+    let robocons = _robocons.get_mut();
+    if joy1_c.pressed_r1() {
         robocons.swap(0, 1);
+
+        let logger = Rc::new(Logger::new("director_2024_a"));
+        pr_info!(logger, "joy1 r1",);
     }
 
-    if joy0_c.pressed_l1() {
-        robocons[0].img_mode = !robocons[0].img_mode
+    if joy1_c.pressed_l1() {
+        robocons[0].img_mode = !robocons[0].img_mode;
+        let logger = Rc::new(Logger::new("director_2024_a"));
+        pr_info!(logger, "joy1 l1",);
     }
 
     if robocons[0].img_mode {
@@ -146,8 +163,3 @@ fn joy1(joy1_msg: TakenMsg<Joy>,  _robocons:&mut RefCell<[RoboCon; 2]>) {
 fn joy2(joy1_msg: TakenMsg<Joy>, _robocons: &RoboCon) {
     _robocons.p_r_joy.send(&joy1_msg).unwrap()
 }
-
-// fn img2joy()-><Joy>{
-//     todo!();
-//     Joy::new();
-// }
