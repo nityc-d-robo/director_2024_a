@@ -335,15 +335,3 @@ name = "windows_x86_64_msvc"
 version = "0.52.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
-
-[[patch.unused]]
-name = "director_2024_a"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "injection_2023_b"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "robo1_2024_a"
-version = "0.1.0"

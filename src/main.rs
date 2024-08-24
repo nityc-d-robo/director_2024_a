@@ -4,11 +4,11 @@ use safe_drive::{
     error::DynError,
     logger::Logger,
     msg::common_interfaces::{sensor_msgs, sensor_msgs::msg::Joy},
-    pr_fatal, pr_info,
+    pr_info,
     topic::publisher::Publisher,
     topic::{subscriber::Subscriber, subscriber::TakenMsg},
 };
-use std::{rc::Rc, time::Duration};
+use std::rc::Rc;
 
 use core::cell::RefCell;
 
