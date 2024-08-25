@@ -40,31 +40,31 @@ fn main() -> Result<(), DynError> {
     let s_joy2 = node.create_subscriber::<sensor_msgs::msg::Joy>("joy2", None)?;
 
     let p_r_joy1 = RoboCon::new(
-        node.create_publisher::<Joy>("r_joy1", None)?,
+        node.create_publisher::<Joy>("rjoy1", None)?,
         node.create_subscriber::<Joy>("ijoy1", None)?,
         false,
         Joy::new().unwrap(),
     );
     let p_r_joy2_1 = RoboCon::new(
-        node.create_publisher::<Joy>("r_joy2_1", None)?,
+        node.create_publisher::<Joy>("rjoy2_1", None)?,
         node.create_subscriber::<Joy>("ijoy1", None)?,
         false,
         Joy::new().unwrap(),
     );
     let p_r_joy2_2_1 = RoboCon::new(
-        node.create_publisher::<Joy>("r_joy2_2_1", None)?,
+        node.create_publisher::<Joy>("rjoy2_2_1", None)?,
         node.create_subscriber::<Joy>("ijoy1", None)?,
         false,
         Joy::new().unwrap(),
     );
     let p_r_joy2_2_2 = RoboCon::new(
-        node.create_publisher::<Joy>("r_joy2_2_2", None)?,
+        node.create_publisher::<Joy>("rjoy2_2_2", None)?,
         node.create_subscriber::<Joy>("ijoy1", None)?,
         false,
         Joy::new().unwrap(),
     );
     let p_r_joy2_3 = RoboCon::new(
-        node.create_publisher::<Joy>("r_joy2_3", None)?,
+        node.create_publisher::<Joy>("rjoy2_3", None)?,
         node.create_subscriber::<Joy>("ijoy1", None)?,
         false,
         Joy::new().unwrap(),
