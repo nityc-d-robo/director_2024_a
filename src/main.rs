@@ -124,7 +124,7 @@ fn joy0(joy0_msg: TakenMsg<Joy>, _robocons: &mut RefCell<[RoboCon; 2]>) {
     if robocons[1].img_mode {
         robocons[1].p_r_joy.send(&robocons[1].img_joy).unwrap()
     } else {
-        robocons[0].p_r_joy.send(&Joy::new().unwrap()).unwrap();
+        robocons[1].p_r_joy.send(&Joy::new().unwrap()).unwrap();
     }
 }
 
@@ -156,7 +156,7 @@ fn joy1(joy1_msg: TakenMsg<Joy>, _robocons: &mut RefCell<[RoboCon; 2]>) {
     if robocons[1].img_mode {
         robocons[1].p_r_joy.send(&robocons[1].img_joy).unwrap()
     } else {
-        robocons[0].p_r_joy.send(&Joy::new().unwrap()).unwrap();
+        robocons[1].p_r_joy.send(&Joy::new().unwrap()).unwrap();
     }
 }
 
