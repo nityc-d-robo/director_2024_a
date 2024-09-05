@@ -70,21 +70,21 @@ fn main() -> Result<(), DynError> {
         Joy::new().unwrap(),
     );
 
-    let mut robocons_joy0 = RefCell::new([p_r_joy1, p_r_joy2_1]);
-    let mut robocons_joy1 = RefCell::new([p_r_joy2_2_1, p_r_joy2_2_2]);
+    let mut robocons_joy0 = RefCell::new(([p_r_joy1, p_r_joy2_1], 0));
+    let mut robocons_joy1 = RefCell::new(([p_r_joy2_2_1, p_r_joy2_2_2], 0));
     let robocons_joy2 = p_r_joy2_3;
 
     selector.add_subscriber(
         s_joy0,
         Box::new(move |msg| {
-            joy0(msg, &mut robocons_joy0);
+            joy0_a_1(msg, &mut robocons_joy0);
         }),
     );
 
     selector.add_subscriber(
         s_joy1,
         Box::new(move |msg| {
-            joy1(msg, &mut robocons_joy1);
+            joy0_a_1(msg, &mut robocons_joy1);
         }),
     );
 
@@ -95,68 +95,58 @@ fn main() -> Result<(), DynError> {
     }
 }
 
-fn joy0(joy0_msg: TakenMsg<Joy>, _robocons: &mut RefCell<[RoboCon; 2]>) {
+fn joy0_a_1(joy_msg: TakenMsg<Joy>, _robocons: &mut RefCell<([RoboCon; 2], usize)>) {
     let binding = sensor_msgs::msg::Joy::new().unwrap();
-    let mut joy0_c = p9n_interface::DualShock4Interface::new(&binding);
-    joy0_c.set_joy_msg(&joy0_msg);
+    let mut joy_c = p9n_interface::DualShock4Interface::new(&binding);
+    joy_c.set_joy_msg(&joy_msg);
 
+    if joy_c.pressed_r2() {
+        let robocons = _robocons.get_mut();
+        robocons.1 = 0;
+    }
+
+    if joy_c.pressed_l2() {
+        let robocons = _robocons.get_mut();
+        robocons.1 = 1;
+    }
+
+    let pointer = _robocons.borrow().1;
+    let unpointer = (pointer + 1) % 2;
     let robocons = _robocons.get_mut();
-    if joy0_c.pressed_r1() {
-        robocons.swap(0, 1);
+
+    if joy_c.pressed_r1() {
+        robocons.0[pointer].img_mode = true;
 
         let logger = Rc::new(Logger::new("director_2024_a"));
-        pr_info!(logger, "joy0 r1",);
+        pr_info!(logger, "joy l1",);
     }
 
-    if joy0_c.pressed_l1() {
-        robocons[0].img_mode = !robocons[0].img_mode;
+    if joy_c.pressed_l1() {
+        robocons.0[pointer].img_mode = false;
 
         let logger = Rc::new(Logger::new("director_2024_a"));
-        pr_info!(logger, "joy0 l1",);
+        pr_info!(logger, "joy l1",);
     }
 
-    if robocons[0].img_mode {
-        robocons[0].p_r_joy.send(&robocons[0].img_joy).unwrap()
+    if robocons.0[pointer].img_mode {
+        robocons.0[pointer]
+            .p_r_joy
+            .send(&robocons.0[pointer].img_joy)
+            .unwrap()
     } else {
-        robocons[0].p_r_joy.send(&joy0_msg).unwrap();
+        robocons.0[pointer].p_r_joy.send(&joy_msg).unwrap();
     }
 
-    if robocons[1].img_mode {
-        robocons[1].p_r_joy.send(&robocons[1].img_joy).unwrap()
+    if robocons.0[unpointer].img_mode {
+        robocons.0[unpointer]
+            .p_r_joy
+            .send(&robocons.0[unpointer].img_joy)
+            .unwrap()
     } else {
-        robocons[1].p_r_joy.send(&Joy::new().unwrap()).unwrap();
-    }
-}
-
-fn joy1(joy1_msg: TakenMsg<Joy>, _robocons: &mut RefCell<[RoboCon; 2]>) {
-    let binding = sensor_msgs::msg::Joy::new().unwrap();
-    let mut joy1_c = p9n_interface::DualShock4Interface::new(&binding);
-    joy1_c.set_joy_msg(&joy1_msg);
-
-    let robocons = _robocons.get_mut();
-    if joy1_c.pressed_r1() {
-        robocons.swap(0, 1);
-
-        let logger = Rc::new(Logger::new("director_2024_a"));
-        pr_info!(logger, "joy1 r1",);
-    }
-
-    if joy1_c.pressed_l1() {
-        robocons[0].img_mode = !robocons[0].img_mode;
-        let logger = Rc::new(Logger::new("director_2024_a"));
-        pr_info!(logger, "joy1 l1",);
-    }
-
-    if robocons[0].img_mode {
-        robocons[0].p_r_joy.send(&robocons[0].img_joy).unwrap()
-    } else {
-        robocons[0].p_r_joy.send(&joy1_msg).unwrap();
-    }
-
-    if robocons[1].img_mode {
-        robocons[1].p_r_joy.send(&robocons[1].img_joy).unwrap()
-    } else {
-        robocons[1].p_r_joy.send(&Joy::new().unwrap()).unwrap();
+        robocons.0[unpointer]
+            .p_r_joy
+            .send(&Joy::new().unwrap())
+            .unwrap();
     }
 }
 
