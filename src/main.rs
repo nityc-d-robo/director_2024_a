@@ -1,4 +1,6 @@
 use controllers::p9n_interface;
+
+#[allow(unused_imports)]
 use safe_drive::{
     context::Context,
     error::DynError,
@@ -6,28 +8,10 @@ use safe_drive::{
     msg::common_interfaces::{sensor_msgs, sensor_msgs::msg::Joy},
     pr_info,
     topic::publisher::Publisher,
-    topic::{subscriber::Subscriber, subscriber::TakenMsg},
+    topic::subscriber::TakenMsg,
 };
-use std::rc::Rc;
 
 use core::cell::RefCell;
-
-struct RoboCon {
-    p_r_joy: Publisher<Joy>,
-    s_img: Subscriber<Joy>,
-    img_mode: bool,
-    img_joy: Joy,
-}
-impl RoboCon {
-    fn new(p_r_joy: Publisher<Joy>, s_img: Subscriber<Joy>, img_mode: bool, img_joy: Joy) -> Self {
-        Self {
-            p_r_joy,
-            s_img,
-            img_mode,
-            img_joy,
-        }
-    }
-}
 
 fn main() -> Result<(), DynError> {
     let _logger = Logger::new("director_2024_a");
@@ -39,40 +23,21 @@ fn main() -> Result<(), DynError> {
     let s_joy1 = node.create_subscriber::<sensor_msgs::msg::Joy>("joy1", None)?;
     let s_joy2 = node.create_subscriber::<sensor_msgs::msg::Joy>("joy2", None)?;
 
-    let p_r_joy1 = RoboCon::new(
-        node.create_publisher::<Joy>("rjoy1", None)?,
-        node.create_subscriber::<Joy>("ijoy1", None)?,
-        false,
-        Joy::new().unwrap(),
-    );
-    let p_r_joy2_1 = RoboCon::new(
-        node.create_publisher::<Joy>("rjoy2_1", None)?,
-        node.create_subscriber::<Joy>("ijoy1", None)?,
-        false,
-        Joy::new().unwrap(),
-    );
-    let p_r_joy2_2_1 = RoboCon::new(
-        node.create_publisher::<Joy>("rjoy2_2_1", None)?,
-        node.create_subscriber::<Joy>("ijoy1", None)?,
-        false,
-        Joy::new().unwrap(),
-    );
-    let p_r_joy2_2_2 = RoboCon::new(
-        node.create_publisher::<Joy>("rjoy2_2_2", None)?,
-        node.create_subscriber::<Joy>("ijoy1", None)?,
-        false,
-        Joy::new().unwrap(),
-    );
-    let p_r_joy2_3 = RoboCon::new(
-        node.create_publisher::<Joy>("rjoy2_3", None)?,
-        node.create_subscriber::<Joy>("ijoy1", None)?,
-        false,
-        Joy::new().unwrap(),
-    );
-
-    let mut robocons_joy0 = RefCell::new(([p_r_joy1, p_r_joy2_1], 0));
-    let mut robocons_joy1 = RefCell::new(([p_r_joy2_2_1, p_r_joy2_2_2], 0));
-    let robocons_joy2 = p_r_joy2_3;
+    let mut robocons_joy0 = RefCell::new((
+        [
+            node.create_publisher::<Joy>("rjoy1", None)?,
+            node.create_publisher::<Joy>("rjoy2_1", None)?,
+        ],
+        0,
+    ));
+    let mut robocons_joy1 = RefCell::new((
+        [
+            node.create_publisher::<Joy>("rjoy2_2_1", None)?,
+            node.create_publisher::<Joy>("rjoy2_2_2", None)?,
+        ],
+        0,
+    ));
+    let robocons_joy2 = node.create_publisher::<Joy>("rjoy2_3", None)?;
 
     selector.add_subscriber(
         s_joy0,
@@ -95,7 +60,7 @@ fn main() -> Result<(), DynError> {
     }
 }
 
-fn joy0_a_1(joy_msg: TakenMsg<Joy>, _robocons: &mut RefCell<([RoboCon; 2], usize)>) {
+fn joy0_a_1(joy_msg: TakenMsg<Joy>, _robocons: &mut RefCell<([Publisher<Joy>; 2], usize)>) {
     let binding = sensor_msgs::msg::Joy::new().unwrap();
     let mut joy_c = p9n_interface::DualShock4Interface::new(&binding);
     joy_c.set_joy_msg(&joy_msg);
@@ -111,45 +76,13 @@ fn joy0_a_1(joy_msg: TakenMsg<Joy>, _robocons: &mut RefCell<([RoboCon; 2], usize
     }
 
     let pointer = _robocons.borrow().1;
-    let unpointer = (pointer + 1) % 2;
+    let unpointer = (pointer + 1) % _robocons.borrow().0.len();
     let robocons = _robocons.get_mut();
 
-    if joy_c.pressed_r1() {
-        robocons.0[pointer].img_mode = true;
-
-        let logger = Rc::new(Logger::new("director_2024_a"));
-        pr_info!(logger, "joy l1",);
-    }
-
-    if joy_c.pressed_l1() {
-        robocons.0[pointer].img_mode = false;
-
-        let logger = Rc::new(Logger::new("director_2024_a"));
-        pr_info!(logger, "joy l1",);
-    }
-
-    if robocons.0[pointer].img_mode {
-        robocons.0[pointer]
-            .p_r_joy
-            .send(&robocons.0[pointer].img_joy)
-            .unwrap()
-    } else {
-        robocons.0[pointer].p_r_joy.send(&joy_msg).unwrap();
-    }
-
-    if robocons.0[unpointer].img_mode {
-        robocons.0[unpointer]
-            .p_r_joy
-            .send(&robocons.0[unpointer].img_joy)
-            .unwrap()
-    } else {
-        robocons.0[unpointer]
-            .p_r_joy
-            .send(&Joy::new().unwrap())
-            .unwrap();
-    }
+    robocons.0[pointer].send(&joy_msg).unwrap();
+    robocons.0[unpointer].send(&Joy::new().unwrap()).unwrap()
 }
 
-fn joy2(joy1_msg: TakenMsg<Joy>, _robocons: &RoboCon) {
-    _robocons.p_r_joy.send(&joy1_msg).unwrap()
+fn joy2(joy1_msg: TakenMsg<Joy>, _robocons: &Publisher<Joy>) {
+    _robocons.send(&joy1_msg).unwrap()
 }
