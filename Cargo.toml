@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 safe_drive = "0.4"
-controllers = {git = "https://github.com/nityc-d-robo/controllers",rev = "d1a09c55cd9d0ca8c5efdcd647fa6ea0ae68306b"}
+controllers = {git = "https://github.com/nityc-d-robo/controllers",rev = "83c2bfdd368250073e4dbaf3a4ce078a9dac3859"}
 
 
 [package.metadata.ros]

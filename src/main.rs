@@ -12,6 +12,7 @@ use safe_drive::{
 };
 
 use core::cell::RefCell;
+use std::rc::Rc;
 
 fn main() -> Result<(), DynError> {
     let _logger = Logger::new("director_2024_a");
@@ -25,19 +26,19 @@ fn main() -> Result<(), DynError> {
 
     let mut robocons_joy0 = RefCell::new((
         [
-            node.create_publisher::<Joy>("rjoy1", None)?,
+            node.create_publisher::<Joy>("rjoy2_2_1", None)?,
             node.create_publisher::<Joy>("rjoy2_1", None)?,
         ],
         0,
     ));
     let mut robocons_joy1 = RefCell::new((
         [
-            node.create_publisher::<Joy>("rjoy2_2_1", None)?,
             node.create_publisher::<Joy>("rjoy2_2_2", None)?,
+            node.create_publisher::<Joy>("rjoy2_3", None)?,
         ],
         0,
     ));
-    let robocons_joy2 = node.create_publisher::<Joy>("rjoy2_3", None)?;
+    let robocons_joy2 = node.create_publisher::<Joy>("rjoy1", None)?;
 
     selector.add_subscriber(
         s_joy0,
@@ -65,12 +66,14 @@ fn joy0_a_1(joy_msg: TakenMsg<Joy>, _robocons: &mut RefCell<([Publisher<Joy>; 2]
     let mut joy_c = p9n_interface::DualShock4Interface::new(&binding);
     joy_c.set_joy_msg(&joy_msg);
 
-    if joy_c.pressed_r2() {
+    let logger = Rc::new(Logger::new("director_2024_a"));
+
+    if joy_c.pressed_dpad_up() {
         let robocons = _robocons.get_mut();
         robocons.1 = 0;
     }
 
-    if joy_c.pressed_l2() {
+    if joy_c.pressed_dpad_down() {
         let robocons = _robocons.get_mut();
         robocons.1 = 1;
     }
@@ -83,6 +86,6 @@ fn joy0_a_1(joy_msg: TakenMsg<Joy>, _robocons: &mut RefCell<([Publisher<Joy>; 2]
     robocons.0[unpointer].send(&Joy::new().unwrap()).unwrap()
 }
 
-fn joy2(joy1_msg: TakenMsg<Joy>, _robocons: &Publisher<Joy>) {
-    _robocons.send(&joy1_msg).unwrap()
+fn joy2(joy_msg: TakenMsg<Joy>, _robocons: &Publisher<Joy>) {
+    _robocons.send(&joy_msg).unwrap()
 }
